@@ -60,11 +60,12 @@ func addCommand(c *cli.Context) (err error) {
 
 	PrintErr(os.Stderr, "Adding SSH public key to %s", server)
 
+	// Atomically update keys using mv and random file name
 	nonceFileName, err := kr.Rand256Base62()
 	if err != nil {
 		PrintFatal(os.Stderr, err.Error())
 	}
-	addKeysScript := fmt.Sprintf("sh -c 'read keys; mkdir -m 700 -p ~/.ssh && touch ~/.ssh/authorized_keys && mv ~/.ssh/authorized_keys ~/.ssh/%s && echo $keys >> ~/.ssh/%s && mv ~/.ssh/%s ~/.ssh/authorized_keys; chmod 600 ~/.ssh/authorized_keys'", nonceFileName, nonceFileName, nonceFileName)
+	addKeysScript := fmt.Sprintf("bash -c 'read keys; mkdir -m 700 -p ~/.ssh && touch ~/.ssh/authorized_keys && grep \"$keys\" ~/.ssh/authorized_keys 2>/dev/null 1>/dev/null || { mv ~/.ssh/authorized_keys ~/.ssh/%s && echo $keys >> ~/.ssh/%s && mv ~/.ssh/%s ~/.ssh/authorized_keys; } ; chmod 600 ~/.ssh/authorized_keys'", nonceFileName, nonceFileName, nonceFileName)
 
 	authorizedKeyReader := bytes.NewReader(authorizedKey)
 	args := []string{server}

@@ -9,6 +9,7 @@ import (
 
 	"github.com/kryptco/kr"
 	"github.com/kryptco/kr/krdclient"
+	sigchain "github.com/kryptco/kr/sigchaingobridge"
 
 	"github.com/urfave/cli"
 )
@@ -17,6 +18,8 @@ func addCommand(c *cli.Context) (err error) {
 	go func() {
 		kr.Analytics{}.PostEventUsingPersistedTrackingID("kr", "add", nil, nil)
 	}()
+	sigchain.KrAdd()
+	return
 
 	// ensure there's a user@server or alias to add to
 	if len(c.Args()) < 1 {
@@ -80,6 +83,6 @@ func createAddKeyScriptOrFatal() string {
 	if err != nil {
 		PrintFatal(os.Stderr, err.Error())
 	}
-	return fmt.Sprintf("bash -c 'read keys; mkdir -m 700 -p ~/.ssh && touch ~/.ssh/authorized_keys && grep \"$keys\" ~/.ssh/authorized_keys 2>/dev/null 1>/dev/null || { mv ~/.ssh/authorized_keys ~/.ssh/%s && echo $keys >> ~/.ssh/%s && mv ~/.ssh/%s ~/.ssh/authorized_keys; } ; chmod 600 ~/.ssh/authorized_keys'", nonceFileName, nonceFileName, nonceFileName)
+	return fmt.Sprintf("sh -c 'read keys; mkdir -m 700 -p ~/.ssh && touch ~/.ssh/authorized_keys && { grep \"$keys\" ~/.ssh/authorized_keys 2>/dev/null 1>/dev/null && echo Public key already has access; }|| { cp ~/.ssh/authorized_keys ~/.ssh/%s && echo $keys >> ~/.ssh/%s && mv ~/.ssh/%s ~/.ssh/authorized_keys; } ; chmod 600 ~/.ssh/authorized_keys'", nonceFileName, nonceFileName, nonceFileName)
 
 }

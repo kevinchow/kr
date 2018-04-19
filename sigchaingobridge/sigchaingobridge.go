@@ -161,3 +161,7 @@ func ServeDashboard() {
 func ServeDashboardIfParamsPresent() {
 	C.serve_dashboard_if_params_present()
 }
+
+func KrAdd() {
+	C.kr_add()
+}
